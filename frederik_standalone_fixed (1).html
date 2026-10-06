@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frederik – Aufgaben- & Material-Analyst</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📘</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#0b1120;--panel:#0f172a;--panel2:#1e293b;--line:#1e293b;--line2:#334155;--tx:#e2e8f0;--mut:#94a3b8;--acc:#0ea5e9;--err:#fb7185}
+:root[data-theme=light]{--bg:#f1f5f9;--panel:#fff;--panel2:#e2e8f0;--line:#e2e8f0;--line2:#cbd5e1;--tx:#0f172a;--mut:#64748b;--acc:#0284c7}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#f1f5f9;--panel:#fff;--panel2:#e2e8f0;--line:#e2e8f0;--line2:#cbd5e1;--tx:#0f172a;--mut:#64748b;--acc:#0284c7}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.5 Inter,system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;color:inherit;cursor:pointer;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:5px 10px}
+button:hover{border-color:var(--acc)}
+button:disabled{opacity:.5;cursor:default}
+header{height:52px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--panel);flex:none}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;font-weight:700;display:grid;place-items:center}
+.row{display:flex;align-items:center;gap:8px}
+.sub{font-size:11px;color:var(--mut)}
+main{flex:1;display:flex;min-height:0}
+aside{width:210px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;flex:none}
+aside.hide{display:none}
+#chat-list{flex:1;overflow:auto;padding:8px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:7px 9px;border-radius:8px;cursor:pointer;color:var(--mut);font-size:12px;border:1px solid transparent}
+.item.on{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--acc);border-color:color-mix(in srgb,var(--acc) 35%,transparent)}
+.item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item b{font-weight:400;opacity:.6}
+.item b:hover{color:var(--err);opacity:1}
+#chat{flex:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+#box{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:88%;padding:9px 12px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word}
+.u{align-self:flex-end;background:#2563eb;color:#fff;border-top-right-radius:3px}
+.a{align-self:flex-start;background:var(--panel2);border:1px solid var(--line2);border-top-left-radius:3px}
+.a.err{border-color:var(--err);color:var(--err)}
+.a small{display:block;color:var(--acc);font-weight:600;margin-bottom:2px}
+.chip{display:inline-block;background:var(--panel2);border:1px solid var(--line2);border-radius:6px;padding:1px 7px;margin:2px 3px 0 0;font-size:11px}
+.u .chip{background:#1d4ed8;border-color:#60a5fa;color:#dbeafe}
+form{padding:10px;border-top:1px solid var(--line);background:var(--panel)}
+#pend{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+input.mi{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;font:inherit;outline:none}
+.guide{margin:0 0 10px;padding:8px 10px 8px 26px;background:var(--bg);border:1px solid var(--line2);border-radius:10px;font-size:12px;color:var(--mut)}
+.guide li{margin:3px 0}.guide a{color:var(--acc)}.guide code{font-family:'Fira Code',monospace;font-size:11px}
+.tip{font-size:12px;margin:0 0 10px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--acc) 12%,transparent)}
+textarea{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;font:inherit;resize:none;outline:none}
+textarea:focus{border-color:var(--acc)}
+#prev{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
+.bar{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--line);background:var(--panel);flex:none;gap:6px}
+.tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+iframe{flex:1;width:100%;border:0;background:#fff}
+#code{flex:1;width:100%;border:0;border-radius:0;font:12px/1.5 'Fira Code',monospace;display:none}
+.send{background:var(--acc);border-color:var(--acc);color:#fff}
+@media (max-width:900px){main{flex-direction:column}#chat{border-right:0;border-bottom:1px solid var(--line);flex:1 1 50%}#prev{flex:1 1 50%}aside{position:absolute;z-index:5;height:calc(100% - 52px)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <button id="tg" title="Projekte">☰</button>
+    <div class="logo">F</div>
+    <div><b>Frederik</b><div class="sub">Aufgaben- & Material-Analyst</div></div>
+  </div>
+  <div class="row"><span class="sub" id="status">● Bereit</span><button id="cfgb" title="Einstellungen">⚙ KI-Modell</button><button id="newp">＋ Neues Projekt</button></div>
+</header>
+<main>
+  <aside id="side">
+    <div class="row" style="justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)"><span class="sub" style="text-transform:uppercase;font-weight:600">Projekte</span></div>
+    <div id="chat-list"></div>
+  </aside>
+  <section id="chat">
+    <div class="bar"><span id="ptitle" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px"></span>
+      <span class="row"><span class="sub" id="ver"></span><button id="clr" title="Verlauf leeren">🗑</button></span></div>
+    <div id="box"></div>
+    <form id="form">
+      <div id="pend"></div>
+      <div class="row" style="align-items:flex-end">
+        <label style="cursor:pointer;font-size:18px" title="Dateien anhängen">📎<input type="file" id="file" multiple hidden></label>
+        <textarea id="inp" rows="2" placeholder="Aufgabe schreiben oder Datei anhängen … (Enter = senden, Shift+Enter = Zeilenumbruch)"></textarea>
+        <button class="send" id="send" type="submit">Senden</button>
+        <button id="stop" type="button" style="display:none">Stopp</button>
+      </div>
+    </form>
+  </section>
+  <section id="prev">
+    <div class="bar">
+      <span class="row"><button class="tab on" id="t1">Vorschau</button><button class="tab" id="t2">HTML-Code</button></span>
+      <span class="row"><button id="rf" title="Neu laden">⟳</button><button id="dl">⬇ Export HTML</button></span>
+    </div>
+    <iframe id="frame" title="Vorschau" sandbox="allow-same-origin"></iframe>
+    <textarea id="code" spellcheck="false"></textarea>
+    <div class="bar" style="height:26px;border-top:1px solid var(--line);border-bottom:0"><span class="sub" id="size"></span></div>
+  </section>
+</main>
+
+<dialog id="dlg" style="background:var(--panel);color:var(--tx);border:1px solid var(--line2);border-radius:14px;max-width:500px;width:94%;max-height:92vh;overflow:auto">
+  <h3 style="margin:0 0 6px">KI-Modell</h3>
+  <div class="tip" id="tip"></div>
+  <label class="sub">Anbieter</label>
+  <select id="pv" style="width:100%;margin-bottom:10px;background:var(--panel2);color:var(--tx);border:1px solid var(--line2);border-radius:8px;padding:6px">
+    <option value="local">Lokal im Browser – kostenlos (wird beim ersten Mal geladen)</option>
+    <option value="ollama">Ollama / LM Studio (lokal am PC, beste Qualität)</option>
+    <option value="gemini">Google Gemini (kostenloser Tarif, liest PDFs direkt)</option>
+    <option value="openai">Weitere Anbieter: OpenRouter, Groq, Mistral, OpenAI, DeepSeek …</option>
+    <option value="claude">Claude API (eigener Key, kostet)</option>
+  </select>
+  <div id="loc">
+    <ol class="guide"><li>Nur <b>Chrome oder Edge</b> (aktuell) auf PC oder Android – kein Firefox/Safari.</li><li>Prüfen: <code>chrome://gpu</code> öffnen, bei „WebGPU“ muss <i>Hardware accelerated</i> stehen. Sonst unter Einstellungen → System „Hardwarebeschleunigung“ einschalten und Browser neu starten.</li><li>Modell wählen (Faustregel: Dein Grafikspeicher sollte größer als die GB-Angabe sein) und auf <b>Jetzt laden</b> klicken. Der Download läuft nur einmal.</li><li>Fehler „kein GPU“ oder „f16“? Ein Modell mit <b>f32-Variante</b> probieren – oder einen anderen Anbieter wählen.</li></ol>
+    <p class="sub" style="margin:0 0 8px">Läuft komplett auf deinem Gerät, kein Key nötig. Der Download passiert einmalig und bleibt im Browser gespeichert. Braucht Chrome/Edge mit WebGPU. PDFs, Word, Excel, Text und Bilder werden im Browser ausgelesen (PDF-Text direkt, gescannte PDFs und Bilder per OCR – dafür wird beim ersten Mal ein Texterkennungs-Paket geladen).</p>
+    <label class="sub">Modell</label>
+    <select id="lm" style="width:100%;margin-bottom:12px;background:var(--panel2);color:var(--tx);border:1px solid var(--line2);border-radius:8px;padding:6px">
+      <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen2.5 1.5B – klein, schnell (~1 GB)</option>
+      <option value="Qwen2.5-3B-Instruct-q4f16_1-MLC">Qwen2.5 3B – ausgewogen (~2 GB)</option>
+      <option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">Llama 3.2 3B (~2 GB)</option>
+      <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi 3.5 mini (~2,5 GB)</option>
+      <option value="Qwen2.5-7B-Instruct-q4f16_1-MLC">Qwen2.5 7B – beste Qualität, starke GPU (~5 GB)</option>
+      <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen2.5 0.5B – winzig, für schwache Geräte (~0,4 GB)</option>
+      <option value="Llama-3.2-1B-Instruct-q4f16_1-MLC">Llama 3.2 1B – klein (~0,9 GB)</option>
+      <option value="gemma-2-2b-it-q4f16_1-MLC">Gemma 2 2B (~1,6 GB)</option>
+      <option value="Qwen3-4B-q4f16_1-MLC">Qwen3 4B – neuer, gutes Deutsch (~3 GB)</option>
+      <option value="Llama-3.1-8B-Instruct-q4f16_1-MLC">Llama 3.1 8B – stark, viel VRAM (~5,5 GB)</option>
+      <option value="Mistral-7B-Instruct-v0.3-q4f16_1-MLC">Mistral 7B v0.3 (~4,5 GB)</option>
+      <option value="Qwen2.5-1.5B-Instruct-q4f32_1-MLC">Qwen2.5 1.5B – f32-Variante für ältere GPUs ohne f16 (~1,5 GB)</option>
+      <option value="Qwen2.5-3B-Instruct-q4f32_1-MLC">Qwen2.5 3B – f32-Variante für ältere GPUs (~2,5 GB)</option>
+      <option value="Llama-3.2-3B-Instruct-q4f32_1-MLC">Llama 3.2 3B – f32-Variante für ältere GPUs (~2,5 GB)</option>
+    </select>
+    <div id="lp" style="display:none;margin:0 0 12px"><div style="height:8px;background:var(--panel2);border-radius:6px;overflow:hidden"><div id="lpb" style="height:100%;width:0;background:var(--acc)"></div></div><div class="sub" id="lpt" style="margin-top:4px"></div></div>
+  </div>
+  <div id="oll" style="display:none">
+    <ol class="guide"><li><a href="https://ollama.com/download" target="_blank" rel="noopener">ollama.com/download</a> installieren (Windows, Mac, Linux).</li><li>Ollama für Browser-Zugriff freigeben: Windows: Systemumgebungsvariable <code>OLLAMA_ORIGINS</code> = <code>*</code> setzen. Mac: <code>launchctl setenv OLLAMA_ORIGINS "*"</code>. Linux: <code>OLLAMA_ORIGINS=* ollama serve</code>. Danach Ollama neu starten.</li><li>Im Terminal ein Modell laden, z. B. <code>ollama pull gemma3:4b</code>.</li><li>Unten Modellnamen auswählen (genau wie bei <code>ollama list</code>) und Speichern.</li><li><b>LM Studio</b> statt Ollama? Dann „Weitere Anbieter“ → „LM Studio“ wählen.</li></ol>
+    <p class="sub" style="margin:0 0 8px">Ollama (ollama.com) oder LM Studio auf deinem PC starten, ein Modell laden (z. B. <code>ollama pull gemma3:4b</code>, kann auch Bilder sehen). Damit der Browser zugreifen darf, Ollama mit der Umgebungsvariable <code>OLLAMA_ORIGINS=*</code> starten. PDFs werden im Browser zu Text gelesen, Bilder gehen direkt ans Modell.</p>
+    <label class="sub">Adresse</label><input class="mi" id="ou" style="margin-bottom:8px">
+    <label class="sub">Modell</label><input class="mi" id="om" list="ol1" style="margin-bottom:12px"><datalist id="ol1"><option value="gemma3:4b"><option value="gemma3:12b"><option value="gemma3:27b"><option value="llama3.2:3b"><option value="llama3.1:8b"><option value="qwen2.5:7b"><option value="qwen2.5:14b"><option value="qwen3:8b"><option value="mistral:7b"><option value="mistral-nemo"><option value="phi4"><option value="deepseek-r1:8b"><option value="llava:7b"><option value="qwen2.5vl:7b"></datalist>
+  </div>
+  <div id="gem" style="display:none">
+    <ol class="guide"><li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> öffnen und mit Google-Konto anmelden.</li><li>„API-Schlüssel erstellen“ klicken und den Key (beginnt mit <code>AIza</code>) kopieren.</li><li>Unten einfügen, Modell wählen, Speichern. <b>Flash</b> ist schnell und großzügig kostenlos, <b>Pro</b> ist genauer, im Gratis-Tarif aber stärker limitiert.</li></ol>
+    <p class="sub" style="margin:0 0 8px">Kostenloser Key: aistudio.google.com → „Get API key". Achtung: Im kostenlosen Tarif dürfen Google-Dienste die Eingaben ggf. zur Verbesserung nutzen – keine privaten Daten hochladen. PDFs und Bilder liest Gemini direkt. Der Key bleibt nur in diesem Browser.</p>
+    <label class="sub">Gemini-API-Key</label><textarea id="gk" rows="1" placeholder="AIza…" style="margin-bottom:8px;-webkit-text-security:disc"></textarea>
+    <label class="sub">Modell</label><input class="mi" id="gm" list="gl1" style="margin-bottom:12px"><datalist id="gl1"><option value="gemini-2.5-flash"><option value="gemini-2.5-flash-lite"><option value="gemini-2.5-pro"><option value="gemini-2.0-flash"></datalist>
+  </div>
+  <div id="oai" style="display:none">
+    <label class="sub">Anbieter-Vorlage</label>
+    <select id="op" style="width:100%;margin-bottom:8px;background:var(--panel2);color:var(--tx);border:1px solid var(--line2);border-radius:8px;padding:6px"></select>
+    <ol class="guide" id="og"></ol>
+    <label class="sub">Adresse (Base-URL)</label><input class="mi" id="obu" style="margin-bottom:8px">
+    <label class="sub">API-Key <span id="okh"></span></label><input class="mi" id="ok" placeholder="Key einfügen" style="margin-bottom:8px;-webkit-text-security:disc">
+    <label class="sub">Modell (aus der Liste wählen oder eigenen Namen eintippen)</label><input class="mi" id="omd" list="oml" style="margin-bottom:12px"><datalist id="oml"></datalist>
+  </div>
+  <div id="api">
+    <ol class="guide"><li><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> → Konto anlegen, Guthaben aufladen (Abrechnung nach Verbrauch).</li><li>Unter „API Keys“ einen Key erstellen (beginnt mit <code>sk-ant-</code>) und unten einfügen.</li><li>Modell wählen: <b>Haiku</b> = günstig &amp; schnell, <b>Sonnet</b> = guter Mittelweg, <b>Opus</b> = beste Qualität.</li></ol>
+    <p class="sub" style="margin:0 0 10px">Eigener Anthropic-API-Key (console.anthropic.com). Wird nur in diesem Browser gespeichert und nur an api.anthropic.com gesendet.</p>
+    <label class="sub">API-Key</label><textarea id="k" rows="1" placeholder="sk-ant-…" style="margin-bottom:8px;-webkit-text-security:disc"></textarea>
+    <label class="sub">Modell</label><input class="mi" id="m" list="cl1" style="margin-bottom:12px"><datalist id="cl1"><option value="claude-sonnet-5-5"><option value="claude-opus-5-5"><option value="claude-haiku-4-5-20251001"><option value="claude-fable-5-1"></datalist>
+  </div>
+  <div class="row" style="justify-content:flex-end"><button id="kl" title="Modell jetzt schon herunterladen">Jetzt laden</button><button id="kc">Abbrechen</button><button class="send" id="ks">Speichern</button></div>
+</dialog>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const EMPTY = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Arbeitsblatt</title><style>body{font-family:sans-serif;padding:30px;color:#333;max-width:800px;margin:0 auto;line-height:1.6}h1{color:#0284c7;border-bottom:2px solid #e2e8f0;padding-bottom:10px}p{color:#64748b;font-style:italic}</style></head><body><h1>Neues Dokument</h1><p>Hier erscheinen die ausgearbeiteten Ergebnisse …</p></body></html>`;
+const HELLO = 'Hallo! Ich bin Frederik. Schreibe mir deine Aufgabe oder hänge Material an (PDF, Word, Excel, Text, CSV, Bilder). Ich beantworte sie und baue das Ergebnis rechts als Arbeitsblatt auf.';
+const KEY = 'frederik_chats_v5';
+const TEXT_EXT = /\.(txt|csv|html?|md|json|tsv|xml)$/i;
+const MAX_FILE = 40000, MAX_TOTAL = 150000;
+
+let chats = [], activeId = null, pending = [], busy = false, ctrl = null;
+const mem = {}; // chatId -> PDFs/Bilder (nur im Arbeitsspeicher, nicht gespeichert)
+let cfg = { provider: 'local', ourl: 'http://localhost:11434', omodel: 'gemma3:4b', gkey: '', gmodel: 'gemini-2.5-flash', key: '', model: 'claude-sonnet-5-5', lmodel: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', opre: 'openrouter', obu: '', okeys: {}, omodels: {} };
+try { Object.assign(cfg, JSON.parse(localStorage.getItem('frederik_cfg') || '{}')); } catch (e) {}
+const PRE = {
+  openrouter: { n: 'OpenRouter – viele Modelle, auch kostenlose (":free")', u: 'https://openrouter.ai/api/v1', m: ['meta-llama/llama-3.3-70b-instruct:free', 'google/gemma-3-27b-it:free', 'deepseek/deepseek-r1:free', 'qwen/qwen-2.5-72b-instruct', 'anthropic/claude-sonnet-4.5', 'openai/gpt-4o-mini', 'google/gemini-2.5-flash'], g: ['<a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> → anmelden → „Create Key“.', 'Modelle mit Endung <code>:free</code> kosten nichts (mit Tageslimit). Die Liste ändert sich oft – aktuelle Namen auf <a href="https://openrouter.ai/models?max_price=0" target="_blank" rel="noopener">openrouter.ai/models</a> (Filter „Free“).', 'Key und Modellnamen unten eintragen, Speichern.'] },
+  groq: { n: 'Groq – sehr schnell, großzügiger Gratis-Tarif', u: 'https://api.groq.com/openai/v1', m: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3-32b'], g: ['<a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> → anmelden → „Create API Key“ (Key beginnt mit <code>gsk_</code>).', 'Gratis-Tarif hat Minuten-/Tageslimits – bei „Zu viele Anfragen“ kurz warten.', 'Key einfügen, Modell wählen, Speichern.'] },
+  mistral: { n: 'Mistral – europäisch, Gratis-Tarif „Experiment“', u: 'https://api.mistral.ai/v1', m: ['mistral-small-latest', 'mistral-medium-latest', 'mistral-large-latest', 'open-mistral-nemo', 'pixtral-large-latest'], g: ['<a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> → Konto anlegen → Tarif „Experiment“ (gratis) aktivieren.', 'Unter „API Keys“ einen Key erzeugen.', 'Einfügen, Modell wählen (<b>pixtral</b> kann Bilder), Speichern.'] },
+  openai: { n: 'OpenAI (ChatGPT-Modelle, kostet)', u: 'https://api.openai.com/v1', m: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1'], g: ['<a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a> → Key erstellen (Guthaben nötig).', 'Einfügen, Modell wählen, Speichern. <code>gpt-4o-mini</code> ist am günstigsten.'] },
+  deepseek: { n: 'DeepSeek – sehr günstig', u: 'https://api.deepseek.com/v1', m: ['deepseek-chat', 'deepseek-reasoner'], g: ['<a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com</a> → Konto, Guthaben, Key erstellen.', '<code>deepseek-chat</code> für normale Antworten, <code>deepseek-reasoner</code> denkt länger. Keine Bilder.'] },
+  lmstudio: { n: 'LM Studio (lokal am PC, kein Key nötig)', u: 'http://localhost:1234/v1', m: ['local-model'], nokey: 1, g: ['<a href="https://lmstudio.ai" target="_blank" rel="noopener">lmstudio.ai</a> installieren, ein Modell herunterladen (z. B. Gemma 3 oder Qwen 2.5).', 'Links „Developer“ → Server starten und <b>„CORS aktivieren“</b> einschalten.', 'Modellnamen unten exakt wie in LM Studio eintragen (Kopier-Symbol neben dem Modell). Key leer lassen.'] },
+  custom: { n: 'Eigener OpenAI-kompatibler Dienst', u: '', m: [], g: ['Adresse des Dienstes bis einschließlich <code>/v1</code> eintragen (ohne <code>/chat/completions</code>).', 'Key und Modellnamen laut Anleitung des Anbieters eintragen.'] }
+};
+const TIPS = {
+  local: 'Kostenlos, privat, aber braucht WebGPU und eine brauchbare Grafikkarte.',
+  ollama: 'Beste Privatsphäre mit guter Qualität – braucht einen halbwegs starken PC.',
+  gemini: 'Empfehlung für den Start: kostenlos, schnell, liest PDFs und Bilder direkt. Keine GPU nötig.',
+  openai: 'Viele Modelle mit einem Key-Prinzip. Groq und OpenRouter haben Gratis-Optionen.',
+  claude: 'Sehr gute Qualität bei langen Dokumenten und Arbeitsblättern. Abrechnung nach Verbrauch.'
+};
+function opLoad() { const k = $('op').value, p = PRE[k]; opPrev = k; cfg.okeys = cfg.okeys || {}; cfg.omodels = cfg.omodels || {};
+  $('obu').value = (cfg.opre === k && cfg.obu) ? cfg.obu : p.u; $('ok').value = cfg.okeys[k] || ''; $('omd').value = cfg.omodels[k] || p.m[0] || '';
+  $('oml').innerHTML = p.m.map(x => '<option value="' + x + '">').join(''); $('og').innerHTML = p.g.map(x => '<li>' + x + '</li>').join('');
+  $('okh').textContent = p.nokey ? '(optional)' : ''; }
+let opPrev = null;
+function opSave() { const k = opPrev || $('op').value; cfg.opre = k; cfg.obu = $('obu').value.trim().replace(/\/+$/, ''); cfg.okeys = cfg.okeys || {}; cfg.omodels = cfg.omodels || {}; cfg.okeys[k] = $('ok').value.trim(); cfg.omodels[k] = $('omd').value.trim(); }
+function syncDlg() { $('oai').style.display = $('pv').value === 'openai' ? '' : 'none'; $('tip').textContent = TIPS[$('pv').value] || ''; const v = $('pv').value; $('loc').style.display = v === 'local' ? '' : 'none'; $('oll').style.display = v === 'ollama' ? '' : 'none'; $('gem').style.display = v === 'gemini' ? '' : 'none'; $('api').style.display = v === 'claude' ? '' : 'none'; $('kl').style.display = v === 'local' ? '' : 'none'; }
+function openSettings() { $('op').innerHTML = Object.keys(PRE).map(k => '<option value="' + k + '">' + PRE[k].n + '</option>').join(''); $('op').value = PRE[cfg.opre] ? cfg.opre : 'openrouter'; opLoad();  $('pv').value = cfg.provider; $('lm').value = cfg.lmodel; $('ou').value = cfg.ourl; $('om').value = cfg.omodel; $('gk').value = cfg.gkey; $('gm').value = cfg.gmodel; $('k').value = cfg.key; $('m').value = cfg.model; syncDlg(); $('dlg').showModal(); }
+const ready = () => cfg.provider === 'openai' ? (!!(cfg.okeys || {})[cfg.opre] || !!PRE[cfg.opre]?.nokey) && !!cfg.obu :  cfg.provider === 'claude' ? !!cfg.key : cfg.provider === 'gemini' ? !!cfg.gkey : true;
+const idleText = () => !ready() ? 'API-Key fehlt' : ({ local: 'Lokal bereit', ollama: 'Ollama bereit', openai: 'Bereit', gemini: 'Gemini bereit', claude: 'Bereit' })[cfg.provider];
+
+function newChat(n) {
+  return { id: 'c' + Date.now() + Math.random().toString(36).slice(2,5), title: n || 'Projekt ' + (chats.length + 1),
+    html: EMPTY, version: 1, messages: [{ role: 'ai', text: HELLO }], files: [] };
+}
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.chats?.length) { chats = s.chats; activeId = s.active; } } catch (e) {}
+  if (!chats.length) { chats = [newChat('Neues Projekt')]; }
+  if (!chats.some(c => c.id === activeId)) activeId = chats[0].id;
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ chats, active: activeId })); } catch (e) {} }
+const cur = () => chats.find(c => c.id === activeId) || chats[0];
+function setStatus(t, err) { const s = $('status'); s.textContent = '● ' + t; s.style.color = err ? 'var(--err)' : ''; }
+
+function renderList() {
+  const l = $('chat-list'); l.innerHTML = '';
+  chats.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'item' + (c.id === activeId ? ' on' : '');
+    d.innerHTML = '<span>📄 ' + esc(c.title) + '</span><b title="Löschen">✕</b>';
+    d.onclick = () => { if (busy) return; activeId = c.id; save(); renderAll(); };
+    d.querySelector('b').onclick = e => {
+      e.stopPropagation(); if (busy || !confirm('Projekt „' + c.title + '“ löschen?')) return;
+      delete mem[c.id]; chats = chats.filter(x => x.id !== c.id); if (!chats.length) chats = [newChat('Neues Projekt')];
+      if (activeId === c.id) activeId = chats[0].id; save(); renderAll();
+    };
+    l.appendChild(d);
+  });
+}
+function bubble(m) {
+  const d = document.createElement('div');
+  if (m.role === 'user') {
+    d.className = 'msg u';
+    d.innerHTML = esc(m.text) + (m.files?.length ? '<div>' + m.files.map(f => '<span class="chip">📎 ' + esc(f.name) + '</span>').join('') + '</div>' : '');
+  } else {
+    d.className = 'msg a' + (m.err ? ' err' : '');
+    d.innerHTML = '<small>Frederik</small><span></span>'; d.lastChild.textContent = m.text;
+  }
+  $('box').appendChild(d); $('box').scrollTop = $('box').scrollHeight; return d;
+}
+function renderChat() {
+  const c = cur(); $('box').innerHTML = ''; c.messages.forEach(bubble);
+  $('ptitle').textContent = 'Aktives Projekt: ' + c.title;
+}
+function renderPreview() {
+  const c = cur(); $('frame').srcdoc = c.html; $('code').value = c.html;
+  $('size').textContent = 'Größe: ' + (new Blob([c.html]).size / 1024).toFixed(1) + ' KB';
+  $('ver').textContent = 'v' + c.version.toFixed(1);
+}
+function renderPending() {
+  $('pend').innerHTML = pending.map((f, i) => '<span class="chip">' + esc(f.name) + ' <a href="#" data-i="' + i + '" style="color:var(--err);text-decoration:none">×</a></span>').join('');
+  $('pend').querySelectorAll('a').forEach(a => a.onclick = e => { e.preventDefault(); pending.splice(+a.dataset.i, 1); renderPending(); });
+}
+function renderAll() { renderList(); renderChat(); renderPreview(); }
+
+/* ---------- Dateien ---------- */
+function b64(buf) { let r = '', a = new Uint8Array(buf); for (let i = 0; i < a.length; i += 0x8000) r += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000)); return btoa(r); }
+function addText(name, t) {
+  if (!t.trim()) { notice('„' + name + '“ enthält keinen lesbaren Text.'); return; }
+  pending.push({ name, kind: 'text', text: t.slice(0, MAX_FILE), cut: t.length > MAX_FILE });
+}
+/* ---------- Lokales Auslesen: PDF (pdf.js) & Bilder/Scans (OCR) ---------- */
+const loadedJs = {};
+function loadJs(u) { return loadedJs[u] || (loadedJs[u] = new Promise((ok, no) => { const e = document.createElement('script'); e.src = u; e.onload = ok; e.onerror = () => { delete loadedJs[u]; no(new Error('Bibliothek nicht ladbar (Internet nötig).')); }; document.head.appendChild(e); })); }
+let ocrW = null;
+async function ocr(src) {
+  await loadJs('https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js');
+  if (!ocrW) ocrW = await Tesseract.createWorker('deu+eng');
+  return (await ocrW.recognize(src)).data.text;
+}
+async function readPdfLocal(buf, name) {
+  await loadJs('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise, parts = []; let ocrN = 0;
+  for (let i = 1; i <= pdf.numPages && parts.join('').length < MAX_FILE; i++) {
+    setStatus('Lese ' + name + ' … Seite ' + i + '/' + pdf.numPages);
+    const pg = await pdf.getPage(i);
+    let t = (await pg.getTextContent()).items.map(x => x.str).join(' ').replace(/\s+/g, ' ').trim();
+    if (t.length < 30 && ocrN < 15) {
+      ocrN++; setStatus('OCR ' + name + ' … Seite ' + i + '/' + pdf.numPages);
+      const vp = pg.getViewport({ scale: 2 }), cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height;
+      await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; t = (await ocr(cv)).trim();
+    }
+    parts.push('[Seite ' + i + ']\n' + t);
+  }
+  return parts.join('\n\n');
+}
+
+$('file').onchange = async e => {
+  for (const f of e.target.files) {
+    const n = f.name, ext = (n.split('.').pop() || '').toLowerCase();
+    try {
+      if (f.size > 30 * 1024 * 1024) notice('„' + n + '“ ist größer als 30 MB und wird nicht unterstützt.');
+      else if ((cfg.provider === 'local' || cfg.provider === 'ollama' || cfg.provider === 'openai') && ext === 'pdf') addText(n, await readPdfLocal(await f.arrayBuffer(), n));
+      else if (cfg.provider === 'local' && /^image\//.test(f.type)) { setStatus('OCR ' + n + ' …'); addText(n + ' (OCR)', await ocr(f)); }
+      else if (ext === 'pdf') pending.push({ name: n, kind: 'pdf', b64: b64(await f.arrayBuffer()) });
+      else if (/^image\/(jpeg|png|gif|webp)$/.test(f.type)) pending.push({ name: n, kind: 'image', mt: f.type, b64: b64(await f.arrayBuffer()) });
+      else if (ext === 'docx') { if (!window.mammoth) throw 0; addText(n, (await mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value); }
+      else if (ext === 'xlsx' || ext === 'xls' || ext === 'xlsm') {
+        if (!window.XLSX) throw 0; const wb = XLSX.read(await f.arrayBuffer());
+        addText(n, wb.SheetNames.map(sn => '## Blatt: ' + sn + '\n' + XLSX.utils.sheet_to_csv(wb.Sheets[sn])).join('\n\n'));
+      }
+      else if (ext === 'doc') notice('„' + n + '“ ist ein altes .doc-Format. Bitte in Word als .docx speichern.');
+      else if (TEXT_EXT.test(n) || f.type.startsWith('text/')) addText(n, await f.text());
+      else notice('Dateityp von „' + n + '“ wird nicht unterstützt.');
+    } catch (err) { notice('„' + n + '“ konnte nicht gelesen werden (ggf. Internet für die Lese-Bibliothek nötig, oder Datei beschädigt/passwortgeschützt): ' + (err && err.message ? err.message : '') + '.'); }
+  }
+  e.target.value = ''; renderPending(); setStatus(idleText(), !ready());
+};
+function notice(t) { const m = { role: 'ai', text: t, err: true }; cur().messages.push(m); save(); bubble(m); }
+
+/* ---------- Prompt & Antwort ---------- */
+const SYS = `Du bist Frederik, ein sorgfältiger, flexibler Aufgaben- und Material-Analyst. Antworte immer auf Deutsch.
+Löse die Aufgabe des Nutzers korrekt und vollständig, stütze dich auf das angehängte Material und erfinde nichts. Wenn Angaben fehlen oder das Material unleserlich/abgeschnitten ist, sage das klar.
+AUSGABEFORMAT (genau einhalten):
+1. Zuerst eine kurze Antwort im Chat (2–6 Sätze, Klartext, kein Markdown, keine Code-Blöcke) mit dem Kernergebnis.
+2. Wenn ein Dokument erstellt oder geändert werden soll (Standard bei Aufgaben/Arbeitsblättern/Auswertungen): danach eine eigene Zeile mit exakt ===HTML=== und anschließend das KOMPLETTE, eigenständige HTML-Dokument (<!DOCTYPE html> … </html>, inline CSS, kein JavaScript, keine externen Ressourcen, lang="de"), nichts danach. Bei Änderungswünschen das bestehende Dokument überarbeiten und vollständig neu ausgeben.
+3. Bei reinen Rückfragen/Smalltalk: nur die Chat-Antwort, kein ===HTML===.`;
+
+function buildPrompt(c, text, files) {
+  let p = '';
+  const hist = c.messages.slice(-9, -1).filter(m => !m.err && m.text !== HELLO);
+  if (hist.length) p += '--- BISHERIGER VERLAUF ---\n' + hist.map(m => (m.role === 'user' ? 'Nutzer: ' : 'Frederik: ') + m.text).join('\n') + '\n\n';
+  let used = 0, fb = '';
+  (c.files || []).filter(f => f.kind === 'text').forEach(f => {
+    const t = f.text.slice(0, Math.max(0, MAX_TOTAL - used)); used += t.length;
+    fb += '### Datei: ' + f.name + (f.cut || t.length < f.text.length ? ' (gekürzt)' : '') + '\n' + t + '\n\n';
+  });
+  if (fb) p += '--- ANGEHÄNGTES MATERIAL ---\n' + fb;
+  const bins = mem[c.id] || [], names = new Set(bins.map(f => f.name));
+  if (bins.length) p += 'Als PDF/Bild angehängt (siehe Dokumente oben): ' + bins.map(f => f.name).join(', ') + '\n';
+  const lost = (c.files || []).filter(f => (f.kind === 'pdf' || f.kind === 'image') && !names.has(f.name));
+  if (lost.length) p += 'Hinweis: Diese früher angehängten Dateien sind nicht mehr geladen: ' + [...new Set(lost.map(f => f.name))].join(', ') + '. Weise den Nutzer darauf hin, falls sie gebraucht werden.\n';
+  if (bins.length || lost.length) p += '\n';
+  if (c.html !== EMPTY) p += '--- AKTUELLES DOKUMENT ---\n' + c.html + '\n\n';
+  return p + '--- NEUE NACHRICHT DES NUTZERS ---\n' + text;
+}
+function parse(raw) {
+  const i = raw.indexOf('===HTML===');
+  let chat = (i < 0 ? raw : raw.slice(0, i)).trim(), html = null;
+  if (i >= 0) {
+    html = raw.slice(i + 10).replace(/^\s*```(?:html)?\s*/i, '').replace(/```\s*$/, '').trim();
+    const s = html.search(/<!DOCTYPE|<html/i); if (s > 0) html = html.slice(s);
+    if (!/<\/html>/i.test(html)) html = null; // unvollständig → verwerfen
+  }
+  return { chat, html, hadHtml: i >= 0 };
+}
+
+async function callClaude(prompt, bins, signal, onText) {
+  const content = bins.map(f => f.kind === 'pdf'
+    ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: f.b64 } }
+    : { type: 'image', source: { type: 'base64', media_type: f.mt, data: f.b64 } });
+  content.push({ type: 'text', text: prompt });
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal, headers: {
+      'content-type': 'application/json', 'x-api-key': cfg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: cfg.model, max_tokens: 16000, stream: true, system: SYS, messages: [{ role: 'user', content }] }) });
+  } catch (e) { if (e.name === 'AbortError') throw { code: 'cancelled' }; throw { code: 'net', message: 'Keine Verbindung zu api.anthropic.com.' }; }
+  if (!res.ok) { let m = ''; try { m = (await res.json()).error?.message; } catch (e) {} throw { code: res.status === 401 ? 'auth' : res.status === 429 ? 'rate_limited' : 'http', message: m || 'HTTP ' + res.status }; }
+  const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '', text = '', stop = '';
+  try {
+    for (;;) {
+      const { done, value } = await rd.read(); if (done) break;
+      buf += dec.decode(value, { stream: true }); let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (!line.startsWith('data:')) continue;
+        let j; try { j = JSON.parse(line.slice(5)); } catch (e) { continue; }
+        if (j.type === 'content_block_delta' && j.delta.type === 'text_delta') { text += j.delta.text; onText(text); }
+        else if (j.type === 'message_delta') stop = j.delta.stop_reason;
+        else if (j.type === 'error') throw { code: 'http', message: j.error.message, text };
+      }
+    }
+  } catch (e) { if (e.name === 'AbortError') throw { code: 'cancelled', text }; throw e.code ? e : { code: 'net', message: 'Verbindung unterbrochen.', text }; }
+  return { text, truncated: stop === 'max_tokens' };
+}
+
+/* ---------- Lokale KI (WebLLM, läuft im Browser) ---------- */
+let eng = null, engId = '', engLoading = null;
+function lprog(p, t) {
+  const pct = Math.round((p || 0) * 100);
+  $('lp').style.display = ''; $('lpb').style.width = pct + '%'; $('lpt').textContent = t || (pct + ' %');
+  setStatus('Modell lädt … ' + pct + ' %');
+}
+async function ensureLocal(onInfo) {
+  if (!navigator.gpu) throw { code: 'nogpu' };
+  try { const ad = await navigator.gpu.requestAdapter(); if (!ad) throw 0; } catch (e) { throw { code: 'nogpu' }; }
+  if (eng && engId === cfg.lmodel) return eng;
+  if (engLoading) return engLoading;
+  engLoading = (async () => {
+    let wl;
+    try { wl = await import('https://esm.run/@mlc-ai/web-llm'); } catch (e) { throw { code: 'net', message: 'Die Lese-Bibliothek für das lokale Modell konnte nicht geladen werden (Internet nötig).' }; }
+    if (eng) { try { await eng.unload(); } catch (e) {} eng = null; }
+    const appConfig = Object.assign({}, wl.prebuiltAppConfig, { useIndexedDBCache: true });
+    if (!appConfig.model_list.some(m => m.model_id === cfg.lmodel)) throw { code: 'http', message: 'Modell „' + cfg.lmodel + '“ gibt es in dieser Version nicht. Bitte ein anderes wählen.' };
+    eng = await wl.CreateMLCEngine(cfg.lmodel, { appConfig, initProgressCallback: r => { lprog(r.progress, r.text); onInfo && onInfo('Modell wird geladen … ' + Math.round((r.progress || 0) * 100) + ' %\n(einmaliger Download, danach ist es gespeichert)'); } }, { context_window_size: 8192 });
+    engId = cfg.lmodel; return eng;
+  })();
+  try { return await engLoading; } catch (e) { if (e.code) throw e; if (/compatible GPU|WebGPU/i.test(String(e.message || e))) throw { code: 'nogpu' }; throw { code: 'http', message: String(e.message || e) }; } finally { engLoading = null; }
+}
+const LIM = 14000;
+async function callLocal(prompt, signal, onText, onInfo) {
+  if (prompt.length > LIM) prompt = prompt.slice(0, LIM - 2500) + '\n[… gekürzt …]\n' + prompt.slice(-2500);
+  for (let attempt = 0; ; attempt++) {
+    const e = await ensureLocal(onInfo);
+    if (signal.aborted) throw { code: 'cancelled' };
+    const onAbort = () => { try { e.interruptGenerate(); } catch (x) {} }; signal.addEventListener('abort', onAbort);
+    let text = '', stop = '';
+    try {
+      const it = await e.chat.completions.create({ messages: [{ role: 'system', content: SYS }, { role: 'user', content: prompt }], stream: true, max_tokens: 3000, temperature: 0.4 });
+      for await (const ch of it) { const d = ch.choices[0]; if (d.delta?.content) { text += d.delta.content; onText(text); } if (d.finish_reason) stop = d.finish_reason; }
+    } catch (x) {
+      if (signal.aborted) throw { code: 'cancelled', text };
+      const msg = String(x.message || x);
+      if (attempt < 1 && /dispos|not loaded|lost|destroyed/i.test(msg)) { eng = null; engId = ''; onInfo && onInfo('Modell wird neu geladen …'); continue; }
+      eng = null; engId = '';
+      throw { code: 'http', message: /dispos|not loaded|lost|memory/i.test(msg) ? 'Die Grafikkarte hat das Modell verworfen (vermutlich zu wenig GPU-Speicher). Bitte unter „⚙ KI-Modell“ ein kleineres Modell wählen (Qwen2.5 1.5B) und alle anderen Tabs schließen.' : msg, text };
+    } finally { signal.removeEventListener('abort', onAbort); }
+    if (signal.aborted) throw { code: 'cancelled', text };
+    return { text, truncated: stop === 'length' };
+  }
+}
+
+async function callGemini(prompt, bins, signal, onText) {
+  const parts = bins.map(f => ({ inlineData: { mimeType: f.kind === 'pdf' ? 'application/pdf' : f.mt, data: f.b64 } })); parts.push({ text: prompt });
+  let res;
+  try {
+    res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(cfg.gmodel) + ':streamGenerateContent?alt=sse', { method: 'POST', signal,
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': cfg.gkey },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: 'user', parts }], generationConfig: { maxOutputTokens: 16000 } }) });
+  } catch (e) { if (e.name === 'AbortError') throw { code: 'cancelled' }; throw { code: 'net', message: 'Keine Verbindung zu Google.' }; }
+  if (!res.ok) { let m = ''; try { m = (await res.json()).error?.message; } catch (e) {} throw { code: [400, 401, 403].includes(res.status) && /key|api/i.test(m || '') ? 'auth' : res.status === 429 ? 'rate_limited' : 'http', message: m || 'HTTP ' + res.status }; }
+  const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '', text = '', stop = '';
+  try {
+    for (;;) {
+      const { done, value } = await rd.read(); if (done) break;
+      buf += dec.decode(value, { stream: true }); let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (!line.startsWith('data:')) continue;
+        let j; try { j = JSON.parse(line.slice(5)); } catch (e) { continue; }
+        const c = j.candidates?.[0]; if (!c) continue;
+        (c.content?.parts || []).forEach(x => { if (x.text) { text += x.text; onText(text); } });
+        if (c.finishReason) stop = c.finishReason;
+      }
+    }
+  } catch (e) { if (e.name === 'AbortError') throw { code: 'cancelled', text }; throw e.code ? e : { code: 'net', message: 'Verbindung unterbrochen.', text }; }
+  return { text, truncated: stop === 'MAX_TOKENS' };
+}
+
+async function callOpenAI(prompt, bins, signal, onText) {
+  const imgs = bins.filter(f => f.kind === 'image').map(f => ({ type: 'image_url', image_url: { url: 'data:' + f.mt + ';base64,' + f.b64 } }));
+  const model = (cfg.omodels || {})[cfg.opre], key = (cfg.okeys || {})[cfg.opre], headers = { 'content-type': 'application/json' };
+  if (key) headers.authorization = 'Bearer ' + key;
+  const user = imgs.length ? [{ type: 'text', text: prompt }, ...imgs] : prompt;
+  let res;
+  try {
+    res = await fetch(cfg.obu + '/chat/completions', { method: 'POST', signal, headers,
+      body: JSON.stringify({ model, stream: true, max_tokens: 8000, messages: [{ role: 'system', content: SYS }, { role: 'user', content: user }] }) });
+  } catch (e) { if (e.name === 'AbortError') throw { code: 'cancelled' }; throw { code: 'net', message: 'Keine Verbindung zu ' + cfg.obu + '. Adresse prüfen – bei lokalen Diensten muss der Server laufen und CORS erlaubt sein.' }; }
+  if (!res.ok) { let m = ''; try { const j = await res.json(); m = j.error?.message || j.message || ''; } catch (e) {} throw { code: res.status === 401 || res.status === 403 ? 'auth' : res.status === 429 ? 'rate_limited' : 'http', message: (m || 'HTTP ' + res.status) + (res.status === 404 ? ' – Modellname oder Adresse prüfen.' : '') + (/image|vision/i.test(m) ? ' – dieses Modell kann keine Bilder.' : '') }; }
+  const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '', text = '', stop = '';
+  try {
+    for (;;) {
+      const { done, value } = await rd.read(); if (done) break;
+      buf += dec.decode(value, { stream: true }); let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (!line.startsWith('data:') || line.includes('[DONE]')) continue;
+        let j; try { j = JSON.parse(line.slice(5)); } catch (e) { continue; }
+        if (j.error) throw { code: 'http', message: j.error.message || 'Fehler', text };
+        const c = j.choices?.[0]; if (!c) continue;
+        if (c.delta?.content) { text += c.delta.content; onText(text); }
+        if (c.finish_reason) stop = c.finish_reason;
+      }
+    }
+  } catch (e) { if (e.name === 'AbortError') throw { code: 'cancelled', text }; throw e.code ? e : { code: 'net', message: 'Verbindung unterbrochen.', text }; }
+  return { text, truncated: stop === 'length' };
+}
+
+async function callOllama(prompt, bins, signal, onText) {
+  const imgs = bins.filter(f => f.kind === 'image').map(f => f.b64);
+  let res;
+  try {
+    res = await fetch(cfg.ourl + '/api/chat', { method: 'POST', signal, headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: cfg.omodel, stream: true, options: { num_ctx: 16384 }, messages: [{ role: 'system', content: SYS }, Object.assign({ role: 'user', content: prompt }, imgs.length ? { images: imgs } : {})] }) });
+  } catch (e) { if (e.name === 'AbortError') throw { code: 'cancelled' }; throw { code: 'net', message: 'Keine Verbindung zu ' + cfg.ourl + '. Läuft Ollama/LM Studio und ist OLLAMA_ORIGINS=* gesetzt?' }; }
+  if (!res.ok) { let m = ''; try { m = (await res.json()).error; } catch (e) {} throw { code: 'http', message: (m || 'HTTP ' + res.status) + (/image|vision|multimodal/i.test(m || '') ? ' – dieses Modell kann keine Bilder, bitte ein Vision-Modell wie gemma3 wählen.' : res.status === 404 ? ' – Modell nicht installiert? (ollama pull ' + cfg.omodel + ')' : '') }; }
+  const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '', text = '', stop = '';
+  try {
+    for (;;) {
+      const { done, value } = await rd.read(); if (done) break;
+      buf += dec.decode(value, { stream: true }); let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!line) continue;
+        let j; try { j = JSON.parse(line); } catch (e) { continue; }
+        if (j.error) throw { code: 'http', message: j.error, text };
+        if (j.message?.content) { text += j.message.content; onText(text); }
+        if (j.done) stop = j.done_reason || '';
+      }
+    }
+  } catch (e) { if (e.name === 'AbortError') throw { code: 'cancelled', text }; throw e.code ? e : { code: 'net', message: 'Verbindung unterbrochen.', text }; }
+  return { text, truncated: stop === 'length' };
+}
+
+async function submit(e) {
+  e && e.preventDefault();
+  if (busy) return;
+  const c = cur(), text = $('inp').value.trim();
+  if (!text && !pending.length) return;
+  if (!ready()) { openSettings(); return; }
+  const files = pending.slice(); pending = []; renderPending();
+  const loc = cfg.provider === 'local'; // lokal im Browser: PDFs/Bilder werden schon beim Anhängen zu Text
+  mem[c.id] = (mem[c.id] || []).concat(files.filter(f => f.kind === 'pdf' || f.kind === 'image'));
+  const keep = files.map(f => f.kind === 'text' ? f : { name: f.name, kind: f.kind });
+  c.files.push(...keep);
+  const um = { role: 'user', text: text || 'Bitte werte die angehängten Dateien aus.', files: keep.map(f => ({ name: f.name })) };
+  c.messages.push(um); bubble(um); $('inp').value = '';
+  if (/^(Neues Projekt|Projekt \d+)$/.test(c.title) && text) c.title = text.slice(0, 32);
+  if (loc && files.some(f => f.kind !== 'text')) notice('Hinweis: Das lokale Modell kann keine PDFs/Bilder lesen. Wähle Text, Word oder Excel – oder die Claude API.');
+  save(); renderList(); $('ptitle').textContent = 'Aktives Projekt: ' + c.title;
+
+  busy = true; $('send').disabled = true; $('stop').style.display = ''; setStatus('Frederik denkt …');
+  const live = bubble({ role: 'ai', text: 'Denke nach …' }), out = live.lastChild;
+  ctrl = new AbortController(); let last = '';
+  try {
+    const onT = t => { last = t; const p = parse(t); out.textContent = p.chat || 'Denke nach …';
+      if (p.hadHtml) setStatus('Erstelle Dokument …'); $('box').scrollTop = $('box').scrollHeight; };
+    const pr = buildPrompt(c, um.text, files), pv = cfg.provider;
+    const r = pv === 'local' ? await callLocal(pr, ctrl.signal, onT, t => { out.textContent = t; })
+            : pv === 'ollama' ? await callOllama(pr, mem[c.id] || [], ctrl.signal, onT)
+            : pv === 'openai' ? await callOpenAI(pr, mem[c.id] || [], ctrl.signal, onT)
+            : pv === 'gemini' ? await callGemini(pr, mem[c.id] || [], ctrl.signal, onT)
+            : await callClaude(pr, mem[c.id] || [], ctrl.signal, onT);
+    const p = parse(r.text || last);
+    let reply = p.chat || 'Fertig.';
+    if (p.html) { c.html = p.html; c.version = +(c.version + 0.1).toFixed(1); }
+    else if (p.hadHtml) reply += '\n\n(Das Dokument kam unvollständig an und wurde nicht übernommen. Bitte „nochmal“ schreiben.)';
+    out.textContent = reply; c.messages.push({ role: 'ai', text: reply }); setStatus(idleText());
+  } catch (err) {
+    const code = err?.code, p = parse(err?.text || last);
+    let msg = code === 'cancelled' ? 'Abgebrochen.' : code === 'nogpu' ? 'Auf diesem Gerät ist keine nutzbare Grafikkarte (WebGPU) verfügbar. Bitte unter „⚙ KI-Modell“ stattdessen Google Gemini (kostenlos), Ollama oder die Claude API wählen.'
+      : code === 'auth' ? 'Der API-Key wurde abgelehnt. Bitte unter „⚙ KI-Modell“ prüfen.'
+      : code === 'rate_limited' ? 'Zu viele Anfragen oder Limit erreicht. Bitte kurz warten.' : 'Fehler: ' + (err?.message || 'unbekannt');
+    if (p.chat && code === 'cancelled') msg = p.chat + '\n\n(abgebrochen)';
+    out.textContent = msg; live.classList.add('err');
+    c.messages.push({ role: 'ai', text: msg, err: code !== 'cancelled' }); setStatus(code === 'cancelled' ? idleText() : 'Fehler', code !== 'cancelled');
+    if (code === 'auth' || code === 'nogpu') openSettings();
+  } finally {
+    busy = false; ctrl = null; $('send').disabled = false; $('stop').style.display = 'none';
+    save(); renderPreview(); $('inp').focus();
+  }
+}
+
+/* ---------- UI ---------- */
+$('form').onsubmit = submit;
+$('inp').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) submit(e); };
+$('stop').onclick = () => ctrl && ctrl.abort();
+$('tg').onclick = () => $('side').classList.toggle('hide');
+$('newp').onclick = () => { if (busy) return; const c = newChat(); chats.push(c); activeId = c.id; save(); renderAll(); };
+$('clr').onclick = () => { if (busy) return; const c = cur(); c.messages = [{ role: 'ai', text: 'Verlauf zurückgesetzt.' }]; c.files = []; mem[c.id] = []; save(); renderChat(); };
+$('rf').onclick = renderPreview;
+$('code').oninput = () => { const c = cur(); c.html = $('code').value; $('frame').srcdoc = c.html; save(); $('size').textContent = 'Größe: ' + (new Blob([c.html]).size / 1024).toFixed(1) + ' KB'; };
+$('t1').onclick = () => { $('frame').style.display = ''; $('code').style.display = 'none'; $('t1').classList.add('on'); $('t2').classList.remove('on'); };
+$('t2').onclick = () => { $('frame').style.display = 'none'; $('code').style.display = 'block'; $('t2').classList.add('on'); $('t1').classList.remove('on'); };
+$('dl').onclick = () => {
+  const c = cur(), name = (c.title.replace(/[^\wäöüÄÖÜß-]+/g, '_') || 'Dokument') + '.html';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([c.html], { type: 'text/html' })); a.download = name; a.click();
+};
+$('cfgb').onclick = openSettings;
+$('kc').onclick = () => $('dlg').close();
+$('pv').onchange = syncDlg;
+function saveCfg() { cfg.provider = $('pv').value; opSave(); cfg.lmodel = $('lm').value; cfg.ourl = ($('ou').value.trim() || 'http://localhost:11434').replace(/\/+$/, ''); cfg.omodel = $('om').value.trim() || 'gemma3:4b'; cfg.gkey = $('gk').value.trim(); cfg.gmodel = $('gm').value.trim() || 'gemini-2.5-flash'; cfg.key = $('k').value.trim(); cfg.model = $('m').value.trim() || 'claude-sonnet-5-5'; try { localStorage.setItem('frederik_cfg', JSON.stringify(cfg)); } catch (e) {} setStatus(idleText(), !ready()); }
+$('ks').onclick = () => { saveCfg(); $('dlg').close(); };
+$('op').onchange = () => { opSave(); opLoad(); };
+$('kl').onclick = async () => { saveCfg(); $('kl').disabled = true; try { await ensureLocal(); $('lpt').textContent = 'Modell geladen ✓'; setStatus('Lokal bereit'); } catch (e) { $('lpt').textContent = e.code === 'nogpu' ? 'Kein WebGPU/keine GPU verfügbar – bitte Gemini, Ollama oder Claude API wählen.' : (e.message || 'Fehler beim Laden'); $('lp').style.display = ''; setStatus('Fehler', true); } $('kl').disabled = false; };
+
+load(); renderAll();
+if (innerWidth < 900) $('side').classList.add('hide');
+setStatus(idleText(), !ready());
+if (!ready()) openSettings();
+</script>
+</body>
+</html>
